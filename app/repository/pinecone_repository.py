@@ -78,3 +78,4 @@ class PineconeRespository:
     def generate_session_id(self) -> str:
         return str(uuid.uuid4())        # Generate Unique session id
 
+pinecone_service= PineconeRespository()
