@@ -2,11 +2,11 @@ from typing import TypedDict, Optional
 from langgraph.graph import StateGraph, END
 from datetime import datetime
 
-from app.models.schemas import UserInput, Ritual, FeedbackResponse, SessionMemory
-from app.usecases.ritual_architect import RitualArchitect
-from app.usecases.ritual_guide import RitualGuide
-from app.repository.pinecone_repository import pinecone_service
-from app.config.logging import logger
+from models.schemas import UserInput, Ritual, FeedbackResponse, SessionMemory
+from usecases.ritual_architect import RitualArchitect
+from usecases.ritual_guide import RitualGuide
+from repository.pinecone_repository import pinecone_service
+from config.logging import logger
 
 class WorkflowState(TypedDict):
     session_id: str
@@ -46,7 +46,7 @@ class WorkflowService:
                 logger.error(f"Input processing error for session {state['session_id']}: {str(e)}")
                 raise
             
-        async def presentation_node(state: WorkflowState) -> WorkflowService:
+        async def presentation_node(state: WorkflowState) -> WorkflowState:
             logger.info(f"Presenting ritual for session {state['session_id']}")
             try: 
                 await self.guide.start_session(state['ritual'])
@@ -54,7 +54,7 @@ class WorkflowService:
             except Exception as e:
                 logger.error(f"Presentation error for session {state['session_id']}: {str(e)}")
                 raise
-        async def feedback_node(state: WorkflowState) -> WorkflowService:
+        async def feedback_node(state: WorkflowState) -> WorkflowState:
             logger.info(f"Processing feedback for session {state['session_id']}")
             try:
                 if state.get('feedback'):
@@ -66,18 +66,18 @@ class WorkflowService:
         # Nodes
         graph.add_node("input", input_node)
         graph.add_node("presentation", presentation_node)
-        graph.add_node("feedback", feedback_node)
+        graph.add_node("feedback_processing", feedback_node)
         
         # Edges
         graph.set_entry_point('input')
         graph.add_edge("input", "presentation")
-        graph.add_edge("presentation", "feedback")
-        graph.add_edge("feedback", END)
+        graph.add_edge("presentation", "feedback_processing")
+        graph.add_edge("feedback_processing", END)
         
         return graph.compile()
     
     async def run_workflow(self, user_input: str, feedback: Optional[FeedbackResponse]= None) -> WorkflowState:
-        session_id = await pinecone_service.generate_session_id()
+        session_id = pinecone_service.generate_session_id()
         logger.info(f"Starting workflow for session {session_id}")
         
         initial_state= WorkflowState(
@@ -87,7 +87,7 @@ class WorkflowService:
             feedback=feedback
         )
         try:
-            return await self.graph.aiinvoke(initial_state)
+            return await self.graph.ainvoke(initial_state)
         except Exception as e:
             logger.error(f"Workflow error for session {session_id} : {str(e)}")
             raise   

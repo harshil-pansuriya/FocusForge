@@ -3,9 +3,9 @@ from typing import List, Dict, Any, Optional
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 
-from app.models.schemas import SessionMemory
-from app.config.logging import logger
-from app.config.setting import Config
+from models.schemas import SessionMemory
+from config.logging import logger
+from config.setting import Config
 
 
 class PineconeRespository:
@@ -78,9 +78,9 @@ class PineconeRespository:
             logger.error(f"Error updating session rating for {session_id}: {str(e)}")
             return False
         
-    async def retrieve_similar_sessions(self, user_input: str, user_state: str, top_k: int = 3) -> List[Dict[str, Any]]:
+    async def retrieve_similar_sessions(self, user_input: str, user_state: Dict[str, Any], top_k: int = 3) -> List[Dict[str, Any]]:
         try:
-            query_text= f"{user_input} {user_state}"
+            query_text= f"{user_input} {user_state['state']}"
             embedding= await self.generate_embeddings(query_text)
             results= self.index.query(
                 vector= embedding,
@@ -90,12 +90,12 @@ class PineconeRespository:
             )
             
             sessions= [{
-                'session_id': match.id,
-                'score': match.score,
-                'user_state': match.metadata.get('user_state'),
-                "ritual_steps": match.metadata.get("ritual_steps", []),
-                "rating": match.metadata.get("rating")
-            } for match in results.matches]
+                'session_id': match['id'],
+                'score': match['score'],
+                'user_state': match['metadat'].get('user_state'),
+                "ritual_steps": match['metadate'].get("ritual_steps", []),
+                "rating": match['metadata'].get("rating")
+            } for match in results['matches']]
             logger.info(f"Retrieved {len(sessions)} similar sessions")
             return sessions
         except Exception as e:
@@ -116,4 +116,4 @@ class PineconeRespository:
     def generate_session_id(self) -> str:
         return str(uuid.uuid4())        # Generate Unique session id
 
-pinecone_service= PineconeRespository()
+pinecone_service= PineconeRespository()     

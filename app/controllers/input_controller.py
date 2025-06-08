@@ -1,9 +1,9 @@
 from typing import Dict, Any
 from fastapi import HTTPException
-from app.models.schemas import UserInput, RitualResponse, FeedbackResponse
-from app.services.workflow import WorkflowService
-from app.usecases.ritual_guide import RitualGuide
-from app.config.logging import logger
+from models.schemas import UserInput, RitualResponse, FeedbackResponse
+from services.workflow import WorkflowService
+from usecases.ritual_guide import RitualGuide
+from config.logging import logger
 
 class InputController:
     
@@ -28,7 +28,7 @@ class InputController:
             logger.error(f"Error processing user input: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Failed to process input: {str(e)}")
         
-    async def get_current_step(self, session_id: int) -> Dict[str, Any]:
+    async def get_current_step(self, session_id: str) -> Dict[str, Any]:
         logger.info(f"Retrieving current step for session {session_id}")
         try:
             step_response = await self.guide.get_current_step(session_id)
@@ -39,7 +39,7 @@ class InputController:
             logger.error(f"Error retrieving step for session {session_id}: {str(e)}")
             raise HTTPException(status_code=404, detail=f"Failed to retrieve step: {str(e)}")
 
-    async def next_step(self, session_id: int) -> Dict[str, Any]:
+    async def next_step(self, session_id: str) -> Dict[str, Any]:
         logger.info(f"Advancing to next step for session {session_id}")
         try:
             step_response = await self.guide.next_step(session_id)
@@ -50,8 +50,7 @@ class InputController:
             logger.error(f"Error advancing step for session {session_id}: {str(e)}")
             raise HTTPException(status_code=404, detail=f"Failed to advance step: {str(e)}")
         
-    async def submit_feedback(self, session_id: int, rating: int) -> FeedbackResponse:
-        """Collect user feedback for a session."""
+    async def submit_feedback(self, session_id: str, rating: int) -> FeedbackResponse:
         logger.info(f"Submitting feedback for session {session_id}")
         try:
             feedback = FeedbackResponse(success=True, session_id=session_id, rating=rating)

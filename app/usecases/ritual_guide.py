@@ -1,16 +1,16 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-from app.models.schemas import Ritual, RitualStep, FeedbackResponse
-from app.repository.pinecone_repository import pinecone_service
-from app.config.logging import logger
+from models.schemas import Ritual, RitualStep, FeedbackResponse
+from repository.pinecone_repository import pinecone_service
+from config.logging import logger
 
 class RitualGuide:
     def __init__(self):
         self.active_sessions= {}
         logger.info('Ritual Guide agent initialized')
         
-    async def start_session(self, ritual: Ritual) -> dict:
+    async def start_session(self, ritual: Ritual) -> Dict[str, Any]:
         session_id= ritual.session_id
         logger.info(f"Starting ritual session {session_id}")
         
@@ -35,7 +35,7 @@ class RitualGuide:
             logger.error(f"Error starting session {session_id}: {str(e)}")
             return {"success": False , "error": str(e)}
         
-    async def get_current_step(self, session_id: str) -> dict:
+    async def get_current_step(self, session_id: str) -> Dict[str, Any]:
         if session_id not in self.active_sessions:
             logger.error(f"Session {session_id} not found")
             return {"success": False, "error": "Session not found"}
@@ -54,7 +54,7 @@ class RitualGuide:
             logger.error(f"Error getting steps for {session_id} : {str(e)}")
             return {"success": False, "error": "Session not found"}
         
-    async def next_step(self, session_id: str) -> dict:
+    async def next_step(self, session_id: str) -> Dict[str, Any]:
         if session_id not in self.active_sessions:
             return {"success": False, "error": "Session not found"}
         
@@ -89,7 +89,7 @@ class RitualGuide:
             if session_id not in self.active_sessions:
                 return {"success": False, "error": "Session not found in aactive sessions"}
             
-            session = await self.pinecone_repo.get_session(session_id)
+            session = await pinecone_service.get_session(session_id)
             if not session:
                 logger.error(f"Session {session_id} not found in Pinecone")
                 return {"success": False, "error": "Session not found in storage"}

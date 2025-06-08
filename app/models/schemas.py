@@ -4,7 +4,7 @@ from datetime import datetime
 
 class UserInput(BaseModel):
     text: str
-    session_id: Optional[int] = None
+    session_id: Optional[str] = None
     
 class RitualStep(BaseModel):
     step_number: int

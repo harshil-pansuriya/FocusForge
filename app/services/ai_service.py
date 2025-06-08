@@ -28,7 +28,7 @@ class AIMemoryService:
                 temperature=0.1,
                 max_tokens=100
             )
-            result= json.loads(response.choice[0].message.content.strip())
+            result= json.loads(response.choices()[0].message.content.strip())
             logger.info(f"Detected State: {result['state']} (confidense: {result['confidence']})")
             
             return result
@@ -37,7 +37,7 @@ class AIMemoryService:
             logger.error(f"Error Analyzing User state: {str(e)}")
             return {'state':'unfocused', 'confidence':0.5}
         
-    async def generate_ritual_step(self, step_type: str, user_state: str, step_number: int) -> List[str, str] :
+    async def generate_ritual_step(self, step_type: str, user_state: str, step_number: int) -> Dict[str, str]:
         
         prompts = {
             "breathing": f"Create a simple breathing exercise for someone who feels {user_state}. Make it 1-2 minutes long.",
@@ -56,7 +56,7 @@ class AIMemoryService:
         }}        
         """
         try:
-            response= response = await self.groq_client.chat.completions.create(
+            response= await self.groq_client.chat.completions.create(
                 model="llama3-8b-8192",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
