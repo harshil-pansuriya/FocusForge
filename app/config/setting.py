@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Dict
 
 class Settings(BaseSettings):
     
@@ -6,6 +7,8 @@ class Settings(BaseSettings):
     
     pinecone_api_key: str
     pinecone_index: str 
+    
+    step_weights: Dict[str, Dict[str, float]]
     
     model_config= SettingsConfigDict(
         env_file=".env",

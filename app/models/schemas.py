@@ -4,7 +4,7 @@ from datetime import datetime
 
 class UserInput(BaseModel):
     text: str
-    session_id: Optional[str] = None
+    session_id: Optional[int] = None
     
 class RitualStep(BaseModel):
     step_number: int
@@ -19,7 +19,7 @@ class Ritual(BaseModel):
     created_at: datetime = datetime.now()
     
 class SessionMemory(BaseModel):
-    session_id: int
+    session_id: str
     user_input: str
     user_state: str
     ritual_steps: List[str]
@@ -35,5 +35,6 @@ class RitualResponse(BaseModel):
 class FeedbackResponse(BaseModel):
     success: bool
     session_id: str
+    rating: int
     message: str = "Feedback saved"
     

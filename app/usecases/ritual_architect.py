@@ -9,7 +9,7 @@ from app.config.setting import step_weights
 from app.config.logging import logger
 
 class RitualArchitect:
-    async def process_input(user_input: str, session_id: int) -> Ritual:
+    async def process_input(user_input: str, session_id: str) -> Ritual:
         user_state= await ai_service.analyze_user_state(user_input)
         logger.info(f"User state for session {session_id}: {user_state}")
         

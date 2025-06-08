@@ -83,7 +83,7 @@ class RitualGuide:
             logger.error(f"Error moving to next step for {session_id}: {str(e)}")
             return {"success": False, "error": str(e)}
         
-    async def collect_feedback(self, session_id:str, feedback:FeedbackResponse) -> Dict[str, Any]:
+    async def collect_feedback(self, session_id: str, feedback:FeedbackResponse) -> Dict[str, Any]:
         logger.info(f"Collecting feedback for session {session_id}")
         try:
             if session_id not in self.active_sessions:
@@ -118,7 +118,7 @@ class RitualGuide:
                 return step
         return None
     
-    async def _get_progress(self, session_id:str) -> dict:
+    async def _get_progress(self, session_id: str) -> dict:
         session = self.active_sessions[session_id]
         completed= len(session['completed_steps'])
         total= session['total_steps']
