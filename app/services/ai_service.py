@@ -12,13 +12,16 @@ class AIMemoryService:
         
     async def analyze_user_state(self, user_input: str) -> Dict[str, Any]:
         prompt = f"""
-        Analyze this user input and determine their emotional/cognitive state.
+        Analyze the following user input to determine their emotional or cognitive state. Consider keywords, tone, and context to identify the most prominent state. If multiple states are mentioned, prioritize the most intense or specific one based on the input's phrasing.
+
         User input: "{user_input}"
-        
-        Respond with only a JSON object containing:
+
+        Available states: anxious, unfocused, stressed, low energy, overwhelmed, restless, scattered, tired.
+
+        Respond with a JSON object containing:
         {{
-            "state": "one of: anxious, unfocused, stressed, low_energy, overwhelmed, restless, scattered, tired",
-            "confidence": "float between 0.0 and 1.0"
+            "state": "the most likely state from the available options",
+            "confidence": "float between 0.0 and 1.0, reflecting certainty based on input clarity"
         }}
         """
         try:
@@ -28,31 +31,33 @@ class AIMemoryService:
                 temperature=0.1,
                 max_tokens=100
             )
-            result= json.loads(response.choices()[0].message.content.strip())
-            logger.info(f"Detected State: {result['state']} (confidense: {result['confidence']})")
-            
+            raw_content = response.choices[0].message.content.strip()
+            logger.debug(f"Raw response content: {raw_content}")
+            if not raw_content:
+                raise ValueError("Empty response from Groq API")
+            result = json.loads(raw_content)
+            logger.info(f"Detected State: {result['state']} (confidence: {result['confidence']})")
             return result
-        
         except Exception as e:
             logger.error(f"Error Analyzing User state: {str(e)}")
-            return {'state':'unfocused', 'confidence':0.5}
+            return {'state': 'unfocused', 'confidence': 0.5}
         
     async def generate_ritual_step(self, step_type: str, user_state: str, step_number: int) -> Dict[str, str]:
         
         prompts = {
-            "breathing": f"Create a simple breathing exercise for someone who feels {user_state}. Make it 1-2 minutes long.",
-            "quote": f"Provide an inspiring, calming quote for someone who feels {user_state}.",
-            "journaling": f"Create a brief journaling prompt for someone who feels {user_state}.",
-            "affirmation": f"Write a positive affirmation for someone who feels {user_state}.",
-            "physical": f"Suggest a quick 1-minute physical activity for someone who feels {user_state}."
+            "breathing": f"Create a 1-2 minute breathing exercise tailored for someone feeling {user_state}. Include specific counts (e.g., inhale for 4 seconds) and imagery relevant to their state (e.g., releasing restlessness). Ensure the exercise is unique and avoids repetition with other breathing steps.",
+            "quote": f"Provide a concise, inspiring quote (20-50 words) that directly addresses the feeling of {user_state}. The quote should resonate emotionally and offer actionable wisdom or comfort specific to their state.",
+            "journaling": f"Create a focused journaling prompt for someone feeling {user_state}. The prompt should guide them to reflect on their state, identify causes, and plan a small actionable step. Keep it concise (50-100 words).",
+            "affirmation": f"Write a short, empowering affirmation (10-20 words) for someone feeling {user_state}. It should counter their state with positivity and be specific to their emotional needs.",
+            "physical": f"Suggest a 1-minute physical activity for someone feeling {user_state}. The activity should be simple, energizing, or calming as needed, and tailored to their state (e.g., stretching for low_energy, shaking for restless)."
         }
         
         prompt= f"""
         {prompts.get(step_type, prompts['breathing'])}
         Respond with only JSON Object:
         {{
-            "title": "Brief Title (max 50 chars)",
-            "content": "detailed instructions (max 200 chars)"
+            "title": "Brief title (max 50 chars, unique and state-specific)",
+            "content": "Instructions or text (max 200 chars, clear and relevant)"
         }}        
         """
         try:

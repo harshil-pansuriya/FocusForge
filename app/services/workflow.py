@@ -4,7 +4,7 @@ from datetime import datetime
 
 from models.schemas import UserInput, Ritual, FeedbackResponse, SessionMemory
 from usecases.ritual_architect import RitualArchitect
-from usecases.ritual_guide import RitualGuide
+from usecases.ritual_guide import ritual_guide
 from repository.pinecone_repository import pinecone_service
 from config.logging import logger
 
@@ -18,7 +18,7 @@ class WorkflowService:
     
     def __init__(self):
         self.architect= RitualArchitect()
-        self.guide= RitualGuide()
+        self.guide= ritual_guide
         self.graph= self._create_workflow()
         logger.info("Workflow Service initialized")
         
@@ -59,6 +59,8 @@ class WorkflowService:
             try:
                 if state.get('feedback'):
                     await self.guide.collect_feedback(state['session_id'], state['feedback'])
+                    return state
+                logger.info(f"No feedback provided for session {state['session_id']}, skipping feedback node")
                 return state
             except Exception as e:
                 logger.error(f"Feedback error for session {state['session_id']}: {str(e)}")
@@ -71,7 +73,11 @@ class WorkflowService:
         # Edges
         graph.set_entry_point('input')
         graph.add_edge("input", "presentation")
-        graph.add_edge("presentation", "feedback_processing")
+        graph.add_conditional_edges(
+            "presentation",
+            lambda state: "feedback_processing" if state.get('feedback') else END,
+            {"feedback_processing": "feedback_processing", END: END}
+        )
         graph.add_edge("feedback_processing", END)
         
         return graph.compile()

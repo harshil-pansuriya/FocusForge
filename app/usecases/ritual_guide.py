@@ -87,7 +87,7 @@ class RitualGuide:
         logger.info(f"Collecting feedback for session {session_id}")
         try:
             if session_id not in self.active_sessions:
-                return {"success": False, "error": "Session not found in aactive sessions"}
+                return {"success": False, "error": "Session not found in active sessions"}
             
             session = await pinecone_service.get_session(session_id)
             if not session:
@@ -137,3 +137,6 @@ class RitualGuide:
         if session_id in self.active_sessions:
             del self.active_sessions[session_id]
             logger.info("Session {session_id} Cleaned up")
+            
+            
+ritual_guide = RitualGuide()

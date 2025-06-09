@@ -2,14 +2,14 @@ from typing import Dict, Any
 from fastapi import HTTPException
 from models.schemas import UserInput, RitualResponse, FeedbackResponse
 from services.workflow import WorkflowService
-from usecases.ritual_guide import RitualGuide
+from usecases.ritual_guide import ritual_guide
 from config.logging import logger
 
 class InputController:
     
     def __init__(self):
         self.workflow= WorkflowService()
-        self.guide= RitualGuide()
+        self.guide= ritual_guide
         logger.info("Input Controller initialized")
         
     async def process_user_input(self, user_input: UserInput) -> RitualResponse:

@@ -86,14 +86,14 @@ class PineconeRespository:
                 vector= embedding,
                 top_k= top_k,
                 include_metadata= True,
-                filter= {'rating': {"$gte: 3"}}
+                filter= {'rating': {"$gte": 3}}
             )
             
             sessions= [{
                 'session_id': match['id'],
                 'score': match['score'],
-                'user_state': match['metadat'].get('user_state'),
-                "ritual_steps": match['metadate'].get("ritual_steps", []),
+                'user_state': match['metadata'].get('user_state'),
+                "ritual_steps": match['metadata'].get("ritual_steps", []),
                 "rating": match['metadata'].get("rating")
             } for match in results['matches']]
             logger.info(f"Retrieved {len(sessions)} similar sessions")
@@ -105,8 +105,8 @@ class PineconeRespository:
     async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         try:
             result = self.index.fetch(ids=[session_id])
-            if result['vectors'] and session_id in result['vectors']:
-                return result['vectors'][session_id]['metadata']
+            if result.vectors and session_id in result.vectors:
+                return result.vectors[session_id]['metadata']
             logger.error(f"Session {session_id} not found")
             return None
         except Exception as e:
