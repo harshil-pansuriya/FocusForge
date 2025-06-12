@@ -1,11 +1,15 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import Dict, Any
+from pydantic import BaseModel  
 from models.schemas import UserInput, RitualResponse, FeedbackResponse
 from controllers.input_controller import InputController
 from config.logging import logger
 
 router= APIRouter(prefix='/api/v1', tags=['ritual'])
 controller= InputController()
+
+class FeedbackRequest(BaseModel):
+    rating: int
 
 @router.post("/ritual", response_model= RitualResponse)
 async def create_ritual(user_input: UserInput):
@@ -23,7 +27,7 @@ async def create_ritual(user_input: UserInput):
             detail=f"Failed to create ritual: {str(e)}"
         )
         
-router.get("/step/{session_id}", response_model= Dict[str, Any])
+@router.get("/step/{session_id}", response_model= Dict[str, Any])
 async def get_current_step(session_id: str):
     logger.info(f"Received request for current step: session {session_id}")
     try:
@@ -56,12 +60,12 @@ async def next_step(session_id: str):
         )
     
 @router.post('/feedback/{session_id}', response_model= FeedbackResponse)
-async def submit_feedback(session_id: str, rating: int):
-    logger.info(f"Received feedback request: session {session_id}, rating {rating}")
+async def submit_feedback(session_id: str, feedback_request: FeedbackRequest):
+    logger.info(f"Received feedback request: session {session_id}, rating {feedback_request.rating}")
     try:
-        if not 1 <= rating <= 5:
+        if not 1 <= feedback_request.rating <= 5:
             raise ValueError("Rating must be between 1 and 5")
-        response = await controller.submit_feedback(session_id, rating)
+        response = await controller.submit_feedback(session_id, feedback_request.rating)
         return response
     except ValueError as e:
         logger.error(f"Validation error in submit_feedback: {str(e)}")

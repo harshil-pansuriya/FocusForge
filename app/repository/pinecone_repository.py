@@ -9,6 +9,7 @@ from config.setting import Config
 
 
 class PineconeRespository:
+    # Initialize Pinecone client and embedding model
     def __init__(self):
         self.pc= Pinecone(api_key= Config.pinecone_api_key)
         self.index= self.pc.Index(Config.pinecone_index)
@@ -16,6 +17,7 @@ class PineconeRespository:
         self.embedding_model= SentenceTransformer("all-MiniLM-L6-v2")
         
     async def generate_embeddings(self, text: str) -> List[float]:
+        # Generate embeddings for given text
         try:
             embedding= self.embedding_model.encode(text).tolist()
             logger.debug(f"Created embedding with {len(embedding)} dimensions")
@@ -25,6 +27,7 @@ class PineconeRespository:
             return []
         
     async def store_session(self, session_memory: SessionMemory) -> bool:
+        # Store session data with embeddings in Pinecone
         try:
             memory_text = f"{session_memory.user_input} {session_memory.user_state} {' '.join(session_memory.ritual_steps)}"
             embedding = await self.generate_embeddings(memory_text)
@@ -52,6 +55,7 @@ class PineconeRespository:
             return False
         
     async def update_session_rating(self, session_id: str, rating: int) -> bool:
+        # Update Rating for stored Session
         try:
             session = await self.get_session(session_id)
             if not session:
@@ -79,6 +83,7 @@ class PineconeRespository:
             return False
         
     async def retrieve_similar_sessions(self, user_input: str, user_state: Dict[str, Any], top_k: int = 3) -> List[Dict[str, Any]]:
+        # Retrieve Similar sessions based on input and state
         try:
             query_text= f"{user_input} {user_state['state']}"
             embedding= await self.generate_embeddings(query_text)
@@ -103,6 +108,7 @@ class PineconeRespository:
             return []
         
     async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+        # Fetch session metadata by ID
         try:
             result = self.index.fetch(ids=[session_id])
             if result.vectors and session_id in result.vectors:

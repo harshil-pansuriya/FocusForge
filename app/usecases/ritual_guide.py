@@ -7,10 +7,12 @@ from config.logging import logger
 
 class RitualGuide:
     def __init__(self):
+        # Initialize with an empty sessions dictionary
         self.active_sessions= {}
         logger.info('Ritual Guide agent initialized')
         
     async def start_session(self, ritual: Ritual) -> Dict[str, Any]:
+        # Start a new ritual session
         session_id= ritual.session_id
         logger.info(f"Starting ritual session {session_id}")
         
@@ -36,6 +38,7 @@ class RitualGuide:
             return {"success": False , "error": str(e)}
         
     async def get_current_step(self, session_id: str) -> Dict[str, Any]:
+        # Retrieve the current step for a session
         if session_id not in self.active_sessions:
             logger.error(f"Session {session_id} not found")
             return {"success": False, "error": "Session not found"}
@@ -55,6 +58,7 @@ class RitualGuide:
             return {"success": False, "error": "Session not found"}
         
     async def next_step(self, session_id: str) -> Dict[str, Any]:
+        # Advance to the next step in the session
         if session_id not in self.active_sessions:
             return {"success": False, "error": "Session not found"}
         
@@ -84,6 +88,7 @@ class RitualGuide:
             return {"success": False, "error": str(e)}
         
     async def collect_feedback(self, session_id: str, feedback:FeedbackResponse) -> Dict[str, Any]:
+        # Collect and store feedback for a session
         logger.info(f"Collecting feedback for session {session_id}")
         try:
             if session_id not in self.active_sessions:
@@ -111,6 +116,7 @@ class RitualGuide:
             return {"success": False, "error": str(e)}
             
     async def _get_current_step(self, session_id: str) -> Optional[RitualStep]:
+        # Helper method to get the current step
         session = self.active_sessions[session_id]
         current_step_num = session["current_step"]
         for step in session['ritual'].steps:
@@ -119,6 +125,7 @@ class RitualGuide:
         return None
     
     async def _get_progress(self, session_id: str) -> dict:
+        # Calculate session progress
         session = self.active_sessions[session_id]
         completed= len(session['completed_steps'])
         total= session['total_steps']
@@ -130,10 +137,12 @@ class RitualGuide:
         }
     
     async def _is_session_complete(self, session_id: str) -> bool:
+        # Check if the session is complete
         session= self.active_sessions[session_id]
         return session['current_step'] > session['total_steps']
     
     async def _cleanup_session(self, session_id: str):
+        # Remove session from active sessions
         if session_id in self.active_sessions:
             del self.active_sessions[session_id]
             logger.info("Session {session_id} Cleaned up")

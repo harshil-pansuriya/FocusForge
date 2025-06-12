@@ -54,6 +54,7 @@ class WorkflowService:
             except Exception as e:
                 logger.error(f"Presentation error for session {state['session_id']}: {str(e)}")
                 raise
+            
         async def feedback_node(state: WorkflowState) -> WorkflowState:
             logger.info(f"Processing feedback for session {state['session_id']}")
             try:

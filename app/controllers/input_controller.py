@@ -6,13 +6,14 @@ from usecases.ritual_guide import ritual_guide
 from config.logging import logger
 
 class InputController:
-    
+    # Initialize controller with WorkflowService and ritual_guide
     def __init__(self):
         self.workflow= WorkflowService()
         self.guide= ritual_guide
         logger.info("Input Controller initialized")
         
     async def process_user_input(self, user_input: UserInput) -> RitualResponse:
+        # Log and process incoming user input to generate a ritual
         logger.info(f"Processing user input: {user_input.text}")
         try:
             workflow_state= await self.workflow.run_workflow(user_input.text)
@@ -29,6 +30,7 @@ class InputController:
             raise HTTPException(status_code=500, detail=f"Failed to process input: {str(e)}")
         
     async def get_current_step(self, session_id: str) -> Dict[str, Any]:
+        # Retrieve the current step for the given session
         logger.info(f"Retrieving current step for session {session_id}")
         try:
             step_response = await self.guide.get_current_step(session_id)
@@ -40,6 +42,7 @@ class InputController:
             raise HTTPException(status_code=404, detail=f"Failed to retrieve step: {str(e)}")
 
     async def next_step(self, session_id: str) -> Dict[str, Any]:
+        # Advance to the next step in the session
         logger.info(f"Advancing to next step for session {session_id}")
         try:
             step_response = await self.guide.next_step(session_id)
@@ -51,6 +54,7 @@ class InputController:
             raise HTTPException(status_code=404, detail=f"Failed to advance step: {str(e)}")
         
     async def submit_feedback(self, session_id: str, rating: int) -> FeedbackResponse:
+        # Handle feedback submission for a session
         logger.info(f"Submitting feedback for session {session_id}")
         try:
             feedback = FeedbackResponse(success=True, session_id=session_id, rating=rating)

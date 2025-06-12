@@ -8,13 +8,16 @@ from config.logging import logger
 from prompts.prompts import ANALYSIS_PROMPT, GENERATION_PROMPT
 
 class AIMemoryService:
+    
     def __init__(self):
+        # Initialize Gemini AI client with configuration
         genai.configure(api_key=Config.gemini_api_key)
         self.gemini_client = genai.GenerativeModel('gemini-1.5-flash')
         self.state_prompt = ANALYSIS_PROMPT
         self.ritual_prompt = GENERATION_PROMPT
 
     def parse_response(self, response: str) -> Any:
+        # Parse and clean JSON response from LLM
         logger.debug(f"Raw LLM response: {response}")
         try:
             # Clean response
@@ -32,6 +35,7 @@ class AIMemoryService:
             return None
 
     async def analyze_user_state(self, user_input: str) -> Dict[str, Any]:
+        # Analyze user input to determine emotional state
         prompt = self.state_prompt.format(user_input=user_input)
         
         try:
@@ -58,6 +62,7 @@ class AIMemoryService:
             raise ValueError(f"State analysis failed: {str(e)}")
 
     async def generate_ritual_step(self, user_state: str) -> List[Dict[str, str]]:
+        # Generate ritual steps based on user state
         prompt = self.ritual_prompt.format(user_state=user_state)
         
         try:
